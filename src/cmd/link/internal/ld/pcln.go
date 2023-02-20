@@ -316,8 +316,13 @@ func (state *pclntab) generateFuncnametab(ctxt *Link, funcs []loader.Sym) map[lo
 		}
 	}
 
+
+	// funcname offsets of 0 are considered to be empty strings in the runtime. We respect
+	// that by just padding a single byte at the beginning of runtime.funcnametab,
+	// that way no real offsets can be zero.
+	var size int64 = 1
+
 	// Loop through the CUs, and calculate the size needed.
-	var size int64
 	walkFuncs(ctxt, funcs, func(s loader.Sym) {
 		nameOffsets[s] = uint32(size)
 		a, b, c := nameParts(ctxt.loader.SymName(s))
@@ -874,7 +879,7 @@ func (ctxt *Link) findfunctab(state *pclntab, container loader.Bitmap) {
 				q = ldr.SymValue(e)
 			}
 
-			//print("%d: [%lld %lld] %s\n", idx, p, q, s->name);
+			// print("%d: [%lld %lld] %s\n", idx, p, q, s->name);
 			for ; p < q; p += SUBBUCKETSIZE {
 				i = int((p - min) / SUBBUCKETSIZE)
 				if indexes[i] > idx {
